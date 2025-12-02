@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Simple Snake (amateur)</title>
+  <style>
+    body{font-family:monospace;display:flex;min-height:100vh;align-items:center;justify-content:center;background:#f4f4f4}
+    .wrap{background:#222;padding:14px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+    canvas{background:#111;display:block;border:4px solid #4caf50}
+    .info{color:#eee;margin-top:8px;text-align:center}
+    button{margin-top:6px;padding:6px 10px;border-radius:6px;border:none;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="c" width="320" height="320"></canvas>
+    <div class="info">
+      <div id="score">Score: 0</div>
+      <button id="restart">Restart</button>
+    </div>
+  </div>
+
+<script>
+// Very small and simple snake game. For learning / tinkering.
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const size = 16; // cell size
+const cols = canvas.width / size;
+const rows = canvas.height / size;
+let snake, dir, food, running, score;
+
+function reset(){
+  snake = [{x:5,y:8},{x:4,y:8},{x:3,y:8}];
+  dir = {x:1,y:0};
+  placeFood();
+  running = true;
+  score = 0;
+  document.getElementById('score').textContent = 'Score: 0';
+}
+
+function placeFood(){
+  food = {x: Math.floor(Math.random()*cols), y: Math.floor(Math.random()*rows)};
+  if(snake.some(s => s.x===food.x && s.y===food.y)) placeFood();
+}
+
+function tick(){
+  if(!running) return;
+  const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+  if(head.x<0||head.x>=cols||head.y<0||head.y>=rows){ gameOver(); return; }
+  if(snake.some(s => s.x===head.x && s.y===head.y)){ gameOver(); return; }
+
+  snake.unshift(head);
+  if(head.x===food.x && head.y===food.y){
+    score++;
+    document.getElementById('score').textContent = 'Score: ' + score;
+    placeFood();
+  } else {
+    snake.pop();
+  }
+  draw();
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#ff5252';
+  ctx.fillRect(food.x*size, food.y*size, size, size);
+  for(let i=0;i<snake.length;i++){
+    ctx.fillStyle = i===0 ? '#a5d6a7' : '#4caf50';
+    ctx.fillRect(snake[i].x*size, snake[i].y*size, size-1, size-1);
+  }
+}
+
+function gameOver(){
+  running = false;
+  alert('GAME OVER! Your score: ' + score);
+}
+
+window.addEventListener('keydown', e => {
+  const k = e.keyCode;
+  if(k===37||k===65) if(dir.x!==1){dir={x:-1,y:0}}
+  if(k===38||k===87) if(dir.y!==1){dir={x:0,y:-1}}
+  if(k===39||k===68) if(dir.x!==-1){dir={x:1,y:0}}
+  if(k===40||k===83) if(dir.y!==-1){dir={x:0,y:1}}
+  if(k===32 && !running) reset();
+});
+
+document.getElementById('restart').addEventListener('click', ()=>{ reset(); });
+
+reset();
+setInterval(tick, 120);
+</script>
+</body>
+</html>
